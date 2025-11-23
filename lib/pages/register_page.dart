@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/user.dart';
-import '../services/storage_service.dart';
+import '../services/api_service.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
 import 'login_page.dart';
@@ -31,55 +31,54 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  // Function to register user
   Future<void> _register() async {
     if (_formKey.currentState!.validate()) {
-      final storage = StorageService();
-      final email = _emailController.text.trim();
-      
-      // Check if user already exists
-      final existingUser = await storage.getUserByEmail(email);
-      if (existingUser != null) {
+      try {
+        final api = ApiService();
+        final email = _emailController.text.trim();
+        
+        final fullName = _fullNameController.text.trim();
+        
+        final user = User(
+          id: '',
+          email: email,
+          fullName: fullName,
+          phone: _phoneController.text.trim(),
+        );
+
+        await api.registerUser(user, _passwordController.text);
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Email already registered!'),
+              content: Text('Registration successful! Welcome to NextStep!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomePage()),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+        String errorMessage = e.toString().replaceAll('Exception: ', '');
+        if (errorMessage.contains('Email already registered') || 
+            errorMessage.contains('already registered')) {
+          errorMessage = 'Email already registered. Please login instead.';
+        } else if (errorMessage.isEmpty) {
+          errorMessage = 'Registration failed. Please try again.';
+        }
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage),
               backgroundColor: Colors.red,
+              duration: const Duration(seconds: 4),
             ),
           );
         }
-        return;
-      }
-
-      // Create user object with unique ID
-      final userId = DateTime.now().millisecondsSinceEpoch.toString();
-      final user = User(
-        id: userId,
-        email: email,
-        fullName: _fullNameController.text.trim(),
-        phone: _phoneController.text.trim(),
-      );
-
-      // Save user data
-      await storage.saveUser(user, _passwordController.text);
-
-      // Automatically log in the user
-      await storage.setCurrentUser(user.id);
-
-      if (mounted) {
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Registration successful! Welcome to NextStep!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-
-        // Navigate directly to home page
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomePage()),
-        );
       }
     }
   }
@@ -98,7 +97,6 @@ class _RegisterPageState extends State<RegisterPage> {
               children: [
                 const SizedBox(height: 40),
                 
-                // Title
                 const Text(
                   'Create Account',
                   style: TextStyle(
@@ -117,7 +115,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 40),
 
-                // Full Name Field
                 CustomTextField(
                   label: 'Full Name',
                   hint: 'Enter your full name',
@@ -132,7 +129,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 20),
 
-                // Email Field
                 CustomTextField(
                   label: 'Email',
                   hint: 'Enter your email',
@@ -151,7 +147,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 20),
 
-                // Phone Field
                 CustomTextField(
                   label: 'Phone Number',
                   hint: 'Enter your phone number',
@@ -167,7 +162,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 20),
 
-                // Password Field
                 CustomTextField(
                   label: 'Password',
                   hint: 'Enter your password',
@@ -186,7 +180,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 20),
 
-                // Confirm Password Field
                 CustomTextField(
                   label: 'Confirm Password',
                   hint: 'Confirm your password',
@@ -205,14 +198,12 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 32),
 
-                // Register Button
                 CustomButton(
                   text: 'Register',
                   onPressed: _register,
                 ),
                 const SizedBox(height: 20),
 
-                // Login Link
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../models/job_post.dart';
 import '../models/application.dart';
-import '../services/storage_service.dart';
+import '../services/api_service.dart';
 import 'user_profile_page.dart';
-import 'chat_page.dart';
 
 class JobDetailPage extends StatefulWidget {
   final JobPost jobPost;
@@ -26,28 +25,24 @@ class _JobDetailPageState extends State<JobDetailPage> {
     _checkApplicationStatus();
   }
 
-  @override
-  void dispose() {
-    _messageController.dispose();
-    super.dispose();
-  }
-
   Future<void> _checkApplicationStatus() async {
-    final storage = StorageService();
+    final storage = ApiService();
     final currentUser = await storage.getCurrentUser();
     
     if (currentUser == null) return;
     
-    // Check if this is user's own post
+    // Check user's own post
     final isMyPost = widget.jobPost.userId == currentUser.id;
     
-    // Check if user has already applied
-    final hasApplied = widget.jobPost.applicants.contains(currentUser.id);
+    // Check user apply
+    final hasApplied = await storage.hasUserApplied(widget.jobPost.id, currentUser.id);
 
-    setState(() {
-      _isMyPost = isMyPost;
-      _hasApplied = hasApplied;
-    });
+    if (mounted) {
+      setState(() {
+        _isMyPost = isMyPost;
+        _hasApplied = hasApplied;
+      });
+    }
   }
 
   Future<void> _applyToJob() async {
@@ -61,12 +56,12 @@ class _JobDetailPageState extends State<JobDetailPage> {
       return;
     }
 
-    final storage = StorageService();
+    final storage = ApiService();
     final currentUser = await storage.getCurrentUser();
     
     if (currentUser == null) return;
 
-    // Create application
+    // Create apply
     final applicationId = DateTime.now().millisecondsSinceEpoch.toString();
     final application = Application(
       id: applicationId,
@@ -79,27 +74,24 @@ class _JobDetailPageState extends State<JobDetailPage> {
       appliedAt: DateTime.now(),
     );
 
-    await storage.createApplication(application);
-
-    // Update job post with new applicant
-    final updatedApplicants = [...widget.jobPost.applicants, currentUser.id];
-    final updatedJobPost = JobPost(
-      id: widget.jobPost.id,
-      userId: widget.jobPost.userId,
-      userName: widget.jobPost.userName,
-      userEmail: widget.jobPost.userEmail,
-      title: widget.jobPost.title,
-      company: widget.jobPost.company,
-      description: widget.jobPost.description,
-      location: widget.jobPost.location,
-      jobType: widget.jobPost.jobType,
-      salary: widget.jobPost.salary,
-      requirements: widget.jobPost.requirements,
-      createdAt: widget.jobPost.createdAt,
-      applicants: updatedApplicants,
-    );
-
-    await storage.updateJobPost(updatedJobPost);
+    try {
+      await storage.createApplication(application);
+      
+      // Update apply 
+      setState(() {
+        _hasApplied = true;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error apply to job'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -142,7 +134,7 @@ class _JobDetailPageState extends State<JobDetailPage> {
               controller: _messageController,
               maxLines: 5,
               decoration: InputDecoration(
-                hintText: 'Tell the employer why you\'re a great fit...',
+                hintText: 'Tell the employer why you are a great fit...',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -173,30 +165,13 @@ class _JobDetailPageState extends State<JobDetailPage> {
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: const Text('Job Details'),
-        actions: [
-          if (!_isMyPost)
-            IconButton(
-              icon: const Icon(Icons.message),
-              tooltip: 'Message poster',
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ChatPage(
-                      otherUserId: widget.jobPost.userId,
-                      otherUserName: widget.jobPost.userName,
-                    ),
-                  ),
-                );
-              },
-            ),
-        ],
+        actions: [],
       ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Job Header
+            
             Container(
               padding: const EdgeInsets.all(24),
               color: Colors.white,
@@ -209,7 +184,7 @@ class _JobDetailPageState extends State<JobDetailPage> {
                         width: 70,
                         height: 70,
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor.withOpacity(0.1),
+                          color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Icon(
@@ -246,7 +221,6 @@ class _JobDetailPageState extends State<JobDetailPage> {
 
                   const SizedBox(height: 20),
 
-                  // Tags
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
@@ -259,7 +233,6 @@ class _JobDetailPageState extends State<JobDetailPage> {
 
                   const SizedBox(height: 16),
 
-                  // Posted by (clickable)
                   InkWell(
                     onTap: () {
                       Navigator.push(
@@ -280,11 +253,10 @@ class _JobDetailPageState extends State<JobDetailPage> {
                           style: TextStyle(
                             fontSize: 14,
                             color: Theme.of(context).primaryColor,
-                            decoration: TextDecoration.underline,
                           ),
                         ),
                         const SizedBox(width: 8),
-                        const Icon(Icons.arrow_forward_ios, size: 12),
+
                       ],
                     ),
                   ),
@@ -350,7 +322,7 @@ class _JobDetailPageState extends State<JobDetailPage> {
                 color: Colors.white,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.2),
+                    color: Colors.grey.withValues(alpha: 0.2),
                     spreadRadius: 1,
                     blurRadius: 10,
                   ),
@@ -381,7 +353,7 @@ class _JobDetailPageState extends State<JobDetailPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(

@@ -43,3 +43,17 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Backend/Node.js
+Backend/NextStep/node_modules/
+Backend/NextStep/.env
+Backend/NextStep/package-lock.json
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db

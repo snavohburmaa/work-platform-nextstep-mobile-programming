@@ -40,6 +40,9 @@ dependencies:
   
   # For beautiful icons
   font_awesome_flutter: ^10.7.0
+  
+  # For HTTP requests to backend API
+  http: ^1.1.0
 
 dev_dependencies:
   flutter_test:

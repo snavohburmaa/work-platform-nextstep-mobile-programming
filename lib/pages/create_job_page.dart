@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/job_post.dart';
-import '../services/storage_service.dart';
+import '../services/api_service.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
 
@@ -34,10 +34,23 @@ class _CreateJobPageState extends State<CreateJobPage> {
 
   Future<void> _createJob() async {
     if (_formKey.currentState!.validate()) {
-      final storage = StorageService();
+      final storage = ApiService();
       final currentUser = await storage.getCurrentUser();
 
       if (currentUser == null) return;
+
+      double? salaryMin;
+      double? salaryMax;
+      final salaryText = _salaryController.text.trim();
+      if (salaryText.isNotEmpty) {
+        if (salaryText.contains('-')) {
+          final parts = salaryText.split('-');
+          salaryMin = double.tryParse(parts[0].trim().replaceAll('thb', '').replaceAll(',', ''));
+          salaryMax = double.tryParse(parts[1].trim().replaceAll('thb', '').replaceAll(',', ''));
+        } else {
+          salaryMin = double.tryParse(salaryText.replaceAll('thb', '').replaceAll(',', ''));
+        }
+      }
 
       final jobId = DateTime.now().millisecondsSinceEpoch.toString();
       final jobPost = JobPost(
@@ -50,20 +63,33 @@ class _CreateJobPageState extends State<CreateJobPage> {
         description: _descriptionController.text.trim(),
         location: _locationController.text.trim(),
         jobType: _selectedJobType,
-        salary: _salaryController.text.trim(),
+        salary: salaryText.isNotEmpty ? salaryText : 'Not specified',
+        salaryMin: salaryMin,
+        salaryMax: salaryMax,
         createdAt: DateTime.now(),
       );
 
-      await storage.createJobPost(jobPost);
+      try {
+        await storage.createJobPost(jobPost, currentUser.id);
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Job posted successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.pop(context);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Job posted successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.pop(context);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString()),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }
@@ -99,10 +125,9 @@ class _CreateJobPageState extends State<CreateJobPage> {
               ),
               const SizedBox(height: 32),
 
-              // Job Title
               CustomTextField(
                 label: 'Job Title',
-                hint: 'e.g. Software Engineer',
+                hint: 'e.g. Smart contract developer',
                 controller: _titleController,
                 prefixIcon: Icons.work,
                 validator: (value) {
@@ -114,10 +139,9 @@ class _CreateJobPageState extends State<CreateJobPage> {
               ),
               const SizedBox(height: 20),
 
-              // Company
               CustomTextField(
                 label: 'Company Name',
-                hint: 'e.g. Tech Corp',
+                hint: 'e.g. Rangsit Company',
                 controller: _companyController,
                 prefixIcon: Icons.business,
                 validator: (value) {
@@ -129,10 +153,9 @@ class _CreateJobPageState extends State<CreateJobPage> {
               ),
               const SizedBox(height: 20),
 
-              // Location
               CustomTextField(
                 label: 'Location',
-                hint: 'e.g. New York, NY',
+                hint: 'e.g. Bangkok, Thailand',
                 controller: _locationController,
                 prefixIcon: Icons.location_on,
                 validator: (value) {
@@ -144,7 +167,6 @@ class _CreateJobPageState extends State<CreateJobPage> {
               ),
               const SizedBox(height: 20),
 
-              // Job Type
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -187,22 +209,14 @@ class _CreateJobPageState extends State<CreateJobPage> {
               ),
               const SizedBox(height: 20),
 
-              // Salary
               CustomTextField(
                 label: 'Salary Range',
-                hint: 'e.g. \$50,000 - \$80,000',
+                hint: 'e.g. 50000 thb',
                 controller: _salaryController,
                 prefixIcon: Icons.attach_money,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter salary range';
-                  }
-                  return null;
-                },
               ),
               const SizedBox(height: 20),
 
-              // Description
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -244,7 +258,6 @@ class _CreateJobPageState extends State<CreateJobPage> {
               ),
               const SizedBox(height: 32),
 
-              // Post Button
               CustomButton(
                 text: 'Post Job',
                 onPressed: _createJob,

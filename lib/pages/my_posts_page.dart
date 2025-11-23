@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/job_post.dart';
 import '../models/application.dart';
-import '../services/storage_service.dart';
+import '../services/api_service.dart';
 import 'create_job_page.dart';
 import 'job_detail_page.dart';
 import 'user_profile_page.dart';
@@ -27,24 +27,51 @@ class _MyPostsPageState extends State<MyPostsPage> {
   Future<void> _loadMyPosts() async {
     setState(() => _isLoading = true);
     
-    final storage = StorageService();
-    final currentUser = await storage.getCurrentUser();
-    
-    if (currentUser == null) return;
+    try {
+      final storage = ApiService();
+      final currentUser = await storage.getCurrentUser();
+      
+      if (currentUser == null) {
+        setState(() => _isLoading = false);
+        return;
+      }
 
-    final posts = await storage.getJobPostsByUser(currentUser.id);
-    
-    // Get applicant counts
-    final Map<String, int> counts = {};
-    for (var post in posts) {
-      counts[post.id] = post.applicants.length;
+      final posts = await storage.getJobPostsByUser(currentUser.id);
+      
+      // get applicant counts
+      final Map<String, int> counts = {};
+      for (var post in posts) {
+        try {
+          // get actual applications for this job
+          final applications = await storage.getApplicationsForJob(post.id);
+          counts[post.id] = applications.length;
+        } catch (error) {
+          counts[post.id] = 0;
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          _myPosts = posts..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          _applicantCounts = counts;
+          _isLoading = false;
+        });
+      }
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _myPosts = [];
+          _applicantCounts = {};
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error loading posts: ${error.toString().replaceAll('Exception: ', '')}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
-
-    setState(() {
-      _myPosts = posts..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      _applicantCounts = counts;
-      _isLoading = false;
-    });
   }
 
   Future<void> _deletePost(JobPost post) async {
@@ -68,7 +95,7 @@ class _MyPostsPageState extends State<MyPostsPage> {
     );
 
     if (confirmed == true) {
-      final storage = StorageService();
+      final storage = ApiService();
       await storage.deleteJobPost(post.id);
       _loadMyPosts();
       
@@ -84,12 +111,13 @@ class _MyPostsPageState extends State<MyPostsPage> {
   }
 
   Future<void> _viewApplicants(JobPost post) async {
-    final storage = StorageService();
-    final applications = await storage.getApplicationsForJob(post.id);
+    try {
+      final storage = ApiService();
+      final applications = await storage.getApplicationsForJob(post.id);
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    showModalBottomSheet(
+      showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
@@ -124,7 +152,7 @@ class _MyPostsPageState extends State<MyPostsPage> {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor.withOpacity(0.1),
+                          color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -144,9 +172,9 @@ class _MyPostsPageState extends State<MyPostsPage> {
                         padding: EdgeInsets.all(32.0),
                         child: Text('No applicants yet'),
                       ),
-                    )
-                  else
-                    ...applications.map((app) => _buildApplicantCard(app)).toList(),
+                    ),
+                  // show each applicant
+                  for (var app in applications) _buildApplicantCard(app),
                 ],
               ),
             ),
@@ -154,6 +182,16 @@ class _MyPostsPageState extends State<MyPostsPage> {
         },
       ),
     );
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error loading applicants: ${error.toString().replaceAll('Exception: ', '')}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildApplicantCard(Application app) {
@@ -184,7 +222,7 @@ class _MyPostsPageState extends State<MyPostsPage> {
                   width: 50,
                   height: 50,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withOpacity(0.1),
+                    color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(

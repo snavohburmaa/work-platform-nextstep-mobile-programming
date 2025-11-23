@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../models/job_post.dart';
 import '../models/user.dart';
-import '../services/storage_service.dart';
+import '../services/api_service.dart';
 import 'create_job_page.dart';
 import 'job_detail_page.dart';
 import 'my_posts_page.dart';
 import 'my_applications_page.dart';
-import 'messages_page.dart';
 import 'profile_page.dart';
 import 'login_page.dart';
 
@@ -25,13 +24,11 @@ class _HomePageState extends State<HomePage> {
     const JobFeedPage(),
     const MyPostsPage(),
     const MyApplicationsPage(),
-    const MessagesPage(),
     const ProfilePage(),
   ];
 
   void _handleNavigation(int index) {
-    if (index == 5) {
-      // Logout tapped
+    if (index == 4) {
       _showLogoutDialog();
     } else {
       setState(() {
@@ -65,7 +62,7 @@ class _HomePageState extends State<HomePage> {
     );
 
     if (confirmed == true && mounted) {
-      final storage = StorageService();
+      final storage = ApiService();
       await storage.logout();
 
       if (mounted) {
@@ -102,10 +99,6 @@ class _HomePageState extends State<HomePage> {
             label: 'Applied',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.message),
-            label: 'Messages',
-          ),
-          BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: 'Profile',
           ),
@@ -119,7 +112,6 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-// Job Feed Page - Shows all job posts from all users
 class JobFeedPage extends StatefulWidget {
   const JobFeedPage({super.key});
 
@@ -147,9 +139,9 @@ class _JobFeedPageState extends State<JobFeedPage> {
   }
 
   Future<void> _loadData() async {
-    final storage = StorageService();
-    final user = await storage.getCurrentUser();
-    final posts = await storage.getAllJobPosts();
+    final api = ApiService();
+    final user = await api.getCurrentUser();
+    final posts = await api.getAllJobPosts();
     
     setState(() {
       _currentUser = user;
@@ -161,14 +153,15 @@ class _JobFeedPageState extends State<JobFeedPage> {
   void _filterPosts() {
     setState(() {
       _filteredPosts = _jobPosts.where((post) {
-        // Search filter
+
+        // Search 
+
         final searchQuery = _searchController.text.toLowerCase();
         final matchesSearch = searchQuery.isEmpty ||
             post.title.toLowerCase().contains(searchQuery) ||
             post.company.toLowerCase().contains(searchQuery) ||
             post.location.toLowerCase().contains(searchQuery);
 
-        // Type filter
         final matchesType = _selectedFilter == 'All' ||
             post.jobType == _selectedFilter;
 
@@ -188,7 +181,6 @@ class _JobFeedPageState extends State<JobFeedPage> {
         onRefresh: _loadData,
         child: Column(
           children: [
-            // Search Bar
             Container(
               padding: const EdgeInsets.all(16.0),
               color: Colors.white,
@@ -208,7 +200,6 @@ class _JobFeedPageState extends State<JobFeedPage> {
               ),
             ),
 
-            // Filter Chips
             SizedBox(
               height: 50,
               child: ListView(
@@ -241,7 +232,6 @@ class _JobFeedPageState extends State<JobFeedPage> {
 
             const SizedBox(height: 8),
 
-            // Job Posts List
             Expanded(
               child: _filteredPosts.isEmpty
                   ? Center(
@@ -295,16 +285,6 @@ class _JobFeedPageState extends State<JobFeedPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: isMyPost
-            ? Border.all(color: Theme.of(context).primaryColor, width: 2)
-            : null,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 10,
-          ),
-        ],
       ),
       child: Material(
         color: Colors.transparent,
@@ -323,19 +303,18 @@ class _JobFeedPageState extends State<JobFeedPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header Row
                 Row(
                   children: [
                     Container(
                       width: 50,
                       height: 50,
                       decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor.withOpacity(0.1),
+                        color: Theme.of(context).primaryColor,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
                         Icons.business,
-                        color: Theme.of(context).primaryColor,
+                        color: Colors.white,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -350,7 +329,6 @@ class _JobFeedPageState extends State<JobFeedPage> {
                               fontWeight: FontWeight.bold,
                             ),
                             maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 4),
                           Text(
@@ -387,7 +365,6 @@ class _JobFeedPageState extends State<JobFeedPage> {
 
                 const SizedBox(height: 12),
 
-                // Posted by
                 Row(
                   children: [
                     const Icon(Icons.person, size: 16, color: Colors.grey),
@@ -412,21 +389,18 @@ class _JobFeedPageState extends State<JobFeedPage> {
 
                 const SizedBox(height: 12),
 
-                // Job Details
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children: [
                     _buildTag(Icons.location_on, job.location, Colors.blue),
                     _buildTag(Icons.work_outline, job.jobType, Colors.green),
-                    _buildTag(FontAwesomeIcons.moneyBill, job.salary,
-                        Colors.orange),
+                    _buildTag(FontAwesomeIcons.moneyBill, job.salary,Colors.orange),
                   ],
                 ),
 
                 const SizedBox(height: 12),
 
-                // Description Preview
                 Text(
                   job.description,
                   style: TextStyle(
@@ -439,7 +413,6 @@ class _JobFeedPageState extends State<JobFeedPage> {
 
                 const SizedBox(height: 12),
 
-                // Applicants Count
                 Row(
                   children: [
                     Icon(Icons.people,

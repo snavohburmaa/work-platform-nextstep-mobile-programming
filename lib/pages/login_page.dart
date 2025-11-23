@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/storage_service.dart';
+import '../services/api_service.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
 import 'register_page.dart';
@@ -16,7 +16,6 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _rememberMe = false;
 
   @override
   void dispose() {
@@ -25,58 +24,62 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  // Function to login user
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
-      final storage = StorageService();
-      final email = _emailController.text.trim();
-      final password = _passwordController.text;
+      try {
+        final api = ApiService();
+        final email = _emailController.text.trim();
+        final password = _passwordController.text;
 
-      // Check if user exists
-      final user = await storage.getUserByEmail(email);
-      if (user == null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('No account found. Please register first.'),
-              backgroundColor: Colors.orange,
-            ),
-          );
+        try {
+          await api.loginUser(email, password);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Login successful!'),
+                backgroundColor: Colors.green,
+              ),
+            );
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const HomePage()),
+            );
+          }
+        } catch (e) {
+          try {
+            await api.loginApplicant(email, password);
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Login successful!'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const HomePage()),
+              );
+            }
+          } catch (e2) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Invalid email or password'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          }
         }
-        return;
-      }
-
-      // Verify password
-      final isValidPassword = await storage.verifyPassword(user.id, password);
-      if (!isValidPassword) {
+      } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Invalid password'),
+            SnackBar(
+              content: Text(e.toString().replaceAll('Exception: ', '')),
               backgroundColor: Colors.red,
             ),
           );
         }
-        return;
-      }
-
-      // Set current user
-      await storage.setCurrentUser(user.id);
-
-      if (mounted) {
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Login successful!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-
-        // Navigate to home page
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomePage()),
-        );
       }
     }
   }
@@ -95,7 +98,6 @@ class _LoginPageState extends State<LoginPage> {
               children: [
                 const SizedBox(height: 60),
                 
-                // Title
                 const Text(
                   'Welcome Back!',
                   style: TextStyle(
@@ -114,7 +116,6 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 60),
 
-                // Email Field
                 CustomTextField(
                   label: 'Email',
                   hint: 'Enter your email',
@@ -133,7 +134,6 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 20),
 
-                // Password Field
                 CustomTextField(
                   label: 'Password',
                   hint: 'Enter your password',
@@ -149,46 +149,12 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 16),
 
-                // Remember Me & Forgot Password
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: _rememberMe,
-                          onChanged: (value) {
-                            setState(() {
-                              _rememberMe = value ?? false;
-                            });
-                          },
-                        ),
-                        const Text('Remember me'),
-                      ],
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        // Forgot password functionality
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Forgot password feature coming soon!'),
-                          ),
-                        );
-                      },
-                      child: const Text('Forgot Password?'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 32),
-
-                // Login Button
                 CustomButton(
                   text: 'Login',
                   onPressed: _login,
                 ),
                 const SizedBox(height: 20),
 
-                // Register Link
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

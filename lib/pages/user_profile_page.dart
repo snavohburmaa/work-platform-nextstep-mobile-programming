@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/user.dart';
 import '../models/job_post.dart';
-import '../services/storage_service.dart';
-import 'chat_page.dart';
+import '../services/api_service.dart';
 import 'job_detail_page.dart';
 
 class UserProfilePage extends StatefulWidget {
@@ -26,15 +25,60 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Future<void> _loadUserData() async {
-    final storage = StorageService();
-    final user = await storage.getUserById(widget.userId);
-    final jobs = await storage.getJobPostsByUser(widget.userId);
+    try {
+      final storage = ApiService();
+      
+      // Load user and jobs
+      User? user;
+      List<JobPost> jobs = [];
+      
+      try {
+        user = await storage.getUserById(widget.userId);
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            _user = null;
+            _userJobs = [];
+            _isLoading = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('User not found'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
 
-    setState(() {
-      _user = user;
-      _userJobs = jobs;
-      _isLoading = false;
-    });
+      try {
+        jobs = await storage.getJobPostsByUser(widget.userId);
+      } catch (error) {
+        jobs = [];
+      }
+
+      if (mounted) {
+        setState(() {
+          _user = user;
+          _userJobs = jobs;
+          _isLoading = false;
+        });
+      }
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _user = null;
+          _userJobs = [];
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error loading profile: ${error.toString().replaceAll('Exception: ', '')}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -61,7 +105,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Profile Header
+            // profile header
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(24.0),
@@ -70,7 +114,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
               ),
               child: Column(
                 children: [
-                  // Profile Picture
+                  // profile pic
                   Container(
                     width: 100,
                     height: 100,
@@ -87,7 +131,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   ),
                   const SizedBox(height: 16),
 
-                  // User Name
+                  // name
                   Text(
                     _user!.fullName,
                     style: const TextStyle(
@@ -98,7 +142,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   ),
                   const SizedBox(height: 8),
 
-                  // User Email
+                  // email
                   Text(
                     _user!.email,
                     style: const TextStyle(
@@ -107,37 +151,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-
-                  // Message Button
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ChatPage(
-                            otherUserId: _user!.id,
-                            otherUserName: _user!.fullName,
-                          ),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.message, color: Colors.blue),
-                    label: const Text('Send Message'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.blue,
-                    ),
-                  ),
                 ],
               ),
             ),
 
             const SizedBox(height: 16),
 
-            // User Info
-            if (_user!.phone.isNotEmpty ||
-                _user!.location.isNotEmpty ||
-                _user!.bio.isNotEmpty)
+            // user info
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16),
                 padding: const EdgeInsets.all(20),
@@ -149,74 +169,22 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'About',
+                      'Contact',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 12),
-                    if (_user!.bio.isNotEmpty) ...[
-                      Text(
-                        _user!.bio,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[700],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
                     if (_user!.phone.isNotEmpty)
                       _buildInfoRow(Icons.phone, _user!.phone),
-                    if (_user!.location.isNotEmpty)
-                      _buildInfoRow(Icons.location_on, _user!.location),
                   ],
                 ),
               ),
 
             const SizedBox(height: 16),
 
-            // Skills
-            if (_user!.skills.isNotEmpty)
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Skills',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _user!.skills
-                          .map((skill) => Chip(
-                                label: Text(skill),
-                                backgroundColor:
-                                    Theme.of(context).primaryColor.withOpacity(0.1),
-                                labelStyle: TextStyle(
-                                  color: Theme.of(context).primaryColor,
-                                ),
-                              ))
-                          .toList(),
-                    ),
-                  ],
-                ),
-              ),
-
-            const SizedBox(height: 16),
-
-            // Job Posts
+            // job posts
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
               padding: const EdgeInsets.all(20),
@@ -243,7 +211,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor.withOpacity(0.1),
+                          color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -263,9 +231,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
                         'No job posts yet',
                         style: TextStyle(color: Colors.grey[600]),
                       ),
-                    )
-                  else
-                    ..._userJobs.map((job) => _buildJobCard(job)).toList(),
+                    ),
+                  // show each post
+                  for (var job in _userJobs) _buildJobCard(job),
                 ],
               ),
             ),

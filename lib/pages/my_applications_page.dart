@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/application.dart';
 import '../models/job_post.dart';
-import '../services/storage_service.dart';
+import '../services/api_service.dart';
 import 'job_detail_page.dart';
 
 class MyApplicationsPage extends StatefulWidget {
@@ -25,7 +25,7 @@ class _MyApplicationsPageState extends State<MyApplicationsPage> {
   Future<void> _loadApplications() async {
     setState(() => _isLoading = true);
     
-    final storage = StorageService();
+    final storage = ApiService();
     final currentUser = await storage.getCurrentUser();
     
     if (currentUser == null) return;
@@ -133,47 +133,23 @@ class _MyApplicationsPageState extends State<MyApplicationsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Status Badge
-                Row(
+                // Job Title and Company
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            job.title,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            job.company,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
+                    Text(
+                      job.title,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _getStatusColor(app.status).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        app.status.toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: _getStatusColor(app.status),
-                        ),
+                    const SizedBox(height: 4),
+                    Text(
+                      job.company,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
                       ),
                     ),
                   ],
@@ -255,17 +231,6 @@ class _MyApplicationsPageState extends State<MyApplicationsPage> {
         ),
       ),
     );
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'accepted':
-        return Colors.green;
-      case 'rejected':
-        return Colors.red;
-      default:
-        return Colors.orange;
-    }
   }
 
   String _getTimeAgo(DateTime dateTime) {

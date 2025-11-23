@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/user.dart';
-import '../services/storage_service.dart';
+import '../services/api_service.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -21,19 +21,56 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _loadData() async {
-    final storage = StorageService();
-    final user = await storage.getCurrentUser();
-    
-    if (user == null) return;
+    try {
+      final api = ApiService();
+      final user = await api.getCurrentUser();
+      
+      if (user == null) {
+        if (mounted) {
+          setState(() {
+            _currentUser = null;
+          });
+        }
+        return;
+      }
 
-    final posts = await storage.getJobPostsByUser(user.id);
-    final applications = await storage.getApplicationsByUser(user.id);
+      // Get user's posts
+      List posts = [];
+      try {
+        posts = await api.getJobPostsByUser(user.id);
+      } catch (e) {
+        print('Error loading posts: $e');
+        posts = [];
+      }
 
-    setState(() {
-      _currentUser = user;
-      _myPostsCount = posts.length;
-      _myApplicationsCount = applications.length;
-    });
+      // Get applications (users from users table can't apply, so this will be empty)
+      List applications = [];
+      try {
+        applications = await api.getApplicationsByUser(user.id);
+      } catch (e) {
+        // If user is from users table, they won't have applications
+        print('Note: User is from users table, no applications: $e');
+        applications = [];
+      }
+
+      if (mounted) {
+        setState(() {
+          _currentUser = user;
+          _myPostsCount = posts.length;
+          _myApplicationsCount = applications.length;
+        });
+      }
+    } catch (e) {
+      print('Error loading profile data: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error loading profile: ${e.toString().replaceAll('Exception: ', '')}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -153,83 +190,18 @@ class _ProfilePageState extends State<ProfilePage> {
                   _buildInfoRow(Icons.person, 'Full Name', _currentUser!.fullName),
                   _buildInfoRow(Icons.email, 'Email', _currentUser!.email),
                   _buildInfoRow(Icons.phone, 'Phone', _currentUser!.phone),
-                  if (_currentUser!.location.isNotEmpty)
-                    _buildInfoRow(Icons.location_on, 'Location', _currentUser!.location),
                 ],
               ),
             ),
 
             const SizedBox(height: 16),
 
-            // Bio
-            if (_currentUser!.bio.isNotEmpty)
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16),
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'About Me',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      _currentUser!.bio,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[700],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-            const SizedBox(height: 16),
-
-            // Skills
-            if (_currentUser!.skills.isNotEmpty)
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Skills',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _currentUser!.skills
-                          .map((skill) => Chip(
-                                label: Text(skill),
-                                backgroundColor:
-                                    Theme.of(context).primaryColor.withOpacity(0.1),
-                                labelStyle: TextStyle(
-                                  color: Theme.of(context).primaryColor,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ))
-                          .toList(),
-                    ),
-                  ],
                 ),
               ),
 

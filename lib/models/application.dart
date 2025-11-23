@@ -1,28 +1,26 @@
-// Application model for job applications
 class Application {
   final String id;
   final String jobId;
+  final String postId;
   final String jobTitle;
   final String applicantId;
   final String applicantName;
   final String applicantEmail;
   final String message;
   final DateTime appliedAt;
-  final String status; // pending, accepted, rejected
 
   Application({
     required this.id,
     required this.jobId,
+    this.postId = '',
     required this.jobTitle,
     required this.applicantId,
     required this.applicantName,
     required this.applicantEmail,
-    required this.message,
+    this.message = '',
     required this.appliedAt,
-    this.status = 'pending',
   });
 
-  // Convert to JSON
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -33,24 +31,42 @@ class Application {
       'applicantEmail': applicantEmail,
       'message': message,
       'appliedAt': appliedAt.toIso8601String(),
-      'status': status,
     };
   }
 
-  // Create from JSON
   factory Application.fromJson(Map<String, dynamic> json) {
+    final appId = json['id']?.toString() ?? json['ApplicationID']?.toString() ?? '';
+    final postId = json['postId']?.toString() ?? json['PostID']?.toString() ?? '';
+    final jobId = json['jobId']?.toString() ?? json['JobID']?.toString() ?? postId;
+    final applicantId = json['applicantId']?.toString() ?? json['ApplicantID']?.toString() ?? '';
+    final jobTitle = json['jobTitle'] ?? json['JobTitle'] ?? json['PostTitle'] ?? '';
+    final applicantName = json['applicantName'] ?? '';
+    final applicantEmail = json['applicantEmail'] ?? json['Email'] ?? '';
+    final dateApplied = json['appliedAt'] ?? json['DateApplied'] ?? json['dateApplied'];
+
+    DateTime appliedAtDate;
+    if (dateApplied != null) {
+      if (dateApplied is String) {
+        appliedAtDate = DateTime.parse(dateApplied);
+      } else if (dateApplied is DateTime) {
+        appliedAtDate = dateApplied;
+      } else {
+        appliedAtDate = DateTime.now();
+      }
+    } else {
+      appliedAtDate = DateTime.now();
+    }
+
     return Application(
-      id: json['id'] ?? '',
-      jobId: json['jobId'] ?? '',
-      jobTitle: json['jobTitle'] ?? '',
-      applicantId: json['applicantId'] ?? '',
-      applicantName: json['applicantName'] ?? '',
-      applicantEmail: json['applicantEmail'] ?? '',
+      id: appId,
+      jobId: jobId,
+      postId: postId,
+      jobTitle: jobTitle,
+      applicantId: applicantId,
+      applicantName: applicantName,
+      applicantEmail: applicantEmail,
       message: json['message'] ?? '',
-      appliedAt: json['appliedAt'] != null
-          ? DateTime.parse(json['appliedAt'])
-          : DateTime.now(),
-      status: json['status'] ?? 'pending',
+      appliedAt: appliedAtDate,
     );
   }
 }

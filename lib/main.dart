@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'services/storage_service.dart';  // To check if user is logged in
-import 'pages/login_page.dart';          // Login screen
-import 'pages/home_page.dart';           // Home screen
-import 'themes/app_theme.dart';          // App colors and styles
+import 'services/api_service.dart';      
+import 'pages/login_page.dart';          
+import 'pages/home_page.dart';           
+import 'themes/app_theme.dart';          
 
 void main() {
   runApp(const MyApp());
@@ -14,9 +14,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'NextStep',                // App name
-      theme: AppTheme.lightTheme,       // How app looks (colors, fonts, etc.)
-      home: const CheckLoginScreen(),   // First screen to show
+      title: 'NextStep',                
+      theme: AppTheme.lightTheme,    
+      home: const CheckLoginScreen(),
     );
   }
 }
@@ -37,8 +37,8 @@ class _CheckLoginScreenState extends State<CheckLoginScreen> {
   }
 
   Future<void> checkIfUserIsLoggedIn() async {
-    StorageService storage = StorageService(); 
-    var user = await storage.getCurrentUser();
+    ApiService api = ApiService(); 
+    var user = await api.getCurrentUser();
     
     if (user != null) {
       goToHomePage();
@@ -66,24 +66,7 @@ class _CheckLoginScreenState extends State<CheckLoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(
-              color: Colors.blue,
-            ),
-            SizedBox(height: 20),
-            Text(
-              'Loading...',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
-              ),
-            ),
-          ],
-        ),
-      ),
+      body: Container(), 
     );
   }
 }
