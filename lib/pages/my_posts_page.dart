@@ -5,6 +5,8 @@ import '../services/api_service.dart';
 import 'create_job_page.dart';
 import 'job_detail_page.dart';
 import 'user_profile_page.dart';
+import '../themes/app_theme.dart';
+import '../widgets/custom_button.dart';
 
 class MyPostsPage extends StatefulWidget {
   const MyPostsPage({super.key});
@@ -67,7 +69,7 @@ class _MyPostsPageState extends State<MyPostsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error loading posts: ${error.toString().replaceAll('Exception: ', '')}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -103,7 +105,7 @@ class _MyPostsPageState extends State<MyPostsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Job post deleted'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.success,
           ),
         );
       }
@@ -187,7 +189,7 @@ class _MyPostsPageState extends State<MyPostsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error loading applicants: ${error.toString().replaceAll('Exception: ', '')}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -209,9 +211,8 @@ class _MyPostsPageState extends State<MyPostsPage> {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.grey[50],
+          color: AppColors.inputFill,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey[200]!),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -222,12 +223,12 @@ class _MyPostsPageState extends State<MyPostsPage> {
                   width: 50,
                   height: 50,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.person,
-                    color: Theme.of(context).primaryColor,
+                    color: AppColors.primary,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -247,13 +248,12 @@ class _MyPostsPageState extends State<MyPostsPage> {
                         app.applicantEmail,
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey[600],
+                          color: AppColors.textPrimary,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const Icon(Icons.arrow_forward_ios, size: 16),
               ],
             ),
             const SizedBox(height: 12),
@@ -261,7 +261,7 @@ class _MyPostsPageState extends State<MyPostsPage> {
               app.message,
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey[700],
+                color: AppColors.textPrimary,
               ),
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
@@ -271,7 +271,7 @@ class _MyPostsPageState extends State<MyPostsPage> {
               'Applied ${_getTimeAgo(app.appliedAt)}',
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[500],
+                color: AppColors.textSecondary,
               ),
             ),
           ],
@@ -283,7 +283,6 @@ class _MyPostsPageState extends State<MyPostsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: const Text('My Job Posts'),
         automaticallyImplyLeading: false,
@@ -297,19 +296,20 @@ class _MyPostsPageState extends State<MyPostsPage> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.work_off, size: 64, color: Colors.grey[400]),
+                          Icon(Icons.work_off, size: 64, color: AppColors.textSecondary),
                           const SizedBox(height: 16),
                           Text(
                             'No job posts yet',
                             style: TextStyle(
                               fontSize: 18,
-                              color: Colors.grey[600],
+                              color: AppColors.textSecondary,
                             ),
                           ),
                           const SizedBox(height: 8),
                           const Text('Create your first job post!'),
                           const SizedBox(height: 24),
-                          ElevatedButton.icon(
+                          CustomButton(
+                            text: 'Post a Job',
                             onPressed: () {
                               Navigator.push(
                                 context,
@@ -318,8 +318,6 @@ class _MyPostsPageState extends State<MyPostsPage> {
                                 ),
                               ).then((_) => _loadMyPosts());
                             },
-                            icon: const Icon(Icons.add),
-                            label: const Text('Post a Job'),
                           ),
                         ],
                       ),
@@ -335,6 +333,8 @@ class _MyPostsPageState extends State<MyPostsPage> {
             ),
       floatingActionButton: _myPosts.isNotEmpty
           ? FloatingActionButton.extended(
+              backgroundColor: AppColors.primary,      // Blue background
+              foregroundColor: AppColors.textWhite, 
               onPressed: () {
                 Navigator.push(
                   context,
@@ -352,15 +352,9 @@ class _MyPostsPageState extends State<MyPostsPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 10,
-          ),
-        ],
+        border: Border.all(color: AppColors.inputBorder),
       ),
       child: Column(
         children: [
@@ -396,7 +390,7 @@ class _MyPostsPageState extends State<MyPostsPage> {
                               post.company,
                               style: TextStyle(
                                 fontSize: 14,
-                                color: Colors.grey[600],
+                                color: AppColors.textSecondary,
                               ),
                             ),
                           ],
@@ -408,7 +402,7 @@ class _MyPostsPageState extends State<MyPostsPage> {
                             value: 'delete',
                             child: Row(
                               children: [
-                                Icon(Icons.delete, color: Colors.red),
+                                Icon(Icons.delete, color: AppColors.error),
                                 SizedBox(width: 8),
                                 Text('Delete'),
                               ],
@@ -426,18 +420,18 @@ class _MyPostsPageState extends State<MyPostsPage> {
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      Icon(Icons.location_on, size: 16, color: Colors.grey[600]),
+                      Icon(Icons.location_on, size: 16, color: Colors.blue),
                       const SizedBox(width: 4),
                       Text(
                         post.location,
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                       ),
                       const SizedBox(width: 16),
-                      Icon(Icons.work_outline, size: 16, color: Colors.grey[600]),
+                        Icon(Icons.work_outline, size: 16, color: Colors.green),
                       const SizedBox(width: 4),
                       Text(
                         post.jobType,
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                       ),
                     ],
                   ),
@@ -445,7 +439,6 @@ class _MyPostsPageState extends State<MyPostsPage> {
               ),
             ),
           ),
-          Divider(height: 1, color: Colors.grey[200]),
           InkWell(
             onTap: () => _viewApplicants(post),
             child: Container(
@@ -455,22 +448,17 @@ class _MyPostsPageState extends State<MyPostsPage> {
                 children: [
                   Icon(
                     Icons.people,
-                    color: Theme.of(context).primaryColor,
+                    color: AppColors.primary,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     '${_applicantCounts[post.id] ?? 0} Applicants',
                     style: TextStyle(
-                      color: Theme.of(context).primaryColor,
+                      color: AppColors.primary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(width: 4),
-                  Icon(
-                    Icons.arrow_forward_ios,
-                    size: 14,
-                    color: Theme.of(context).primaryColor,
-                  ),
                 ],
               ),
             ),

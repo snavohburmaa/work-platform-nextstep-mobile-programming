@@ -3,6 +3,7 @@ import '../models/user.dart';
 import '../models/job_post.dart';
 import '../services/api_service.dart';
 import 'job_detail_page.dart';
+import '../themes/app_theme.dart';
 
 class UserProfilePage extends StatefulWidget {
   final String userId;
@@ -25,59 +26,29 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Future<void> _loadUserData() async {
+    final storage = ApiService();
+
+    User? user;
+    List<JobPost> jobs = [];
+    
     try {
-      final storage = ApiService();
-      
-      // Load user and jobs
-      User? user;
-      List<JobPost> jobs = [];
-      
-      try {
-        user = await storage.getUserById(widget.userId);
-      } catch (e) {
-        if (mounted) {
-          setState(() {
-            _user = null;
-            _userJobs = [];
-            _isLoading = false;
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('User not found'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-        return;
-      }
-
-      try {
-        jobs = await storage.getJobPostsByUser(widget.userId);
-      } catch (error) {
-        jobs = [];
-      }
-
-      if (mounted) {
-        setState(() {
-          _user = user;
-          _userJobs = jobs;
-          _isLoading = false;
-        });
-      }
+      user = await storage.getUserById(widget.userId);
     } catch (error) {
-      if (mounted) {
-        setState(() {
-          _user = null;
-          _userJobs = [];
-          _isLoading = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error loading profile: ${error.toString().replaceAll('Exception: ', '')}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      user = null;
+    }
+
+    try {
+      jobs = await storage.getJobPostsByUser(widget.userId);
+    } catch (error) {
+      jobs = [];
+    }
+
+    if (mounted) {
+      setState(() {
+        _user = user;
+        _userJobs = jobs;
+        _isLoading = false;
+      });
     }
   }
 
@@ -98,7 +69,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('User Profile'),
       ),
@@ -110,7 +81,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
               width: double.infinity,
               padding: const EdgeInsets.all(24.0),
               decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor,
+                color: AppColors.primary,
               ),
               child: Column(
                 children: [
@@ -119,14 +90,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     width: 100,
                     height: 100,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppColors.cardBackground,
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 4),
+                      border: Border.all(color: AppColors.textWhite, width: 4),
                     ),
                     child: Icon(
                       Icons.person,
                       size: 50,
-                      color: Theme.of(context).primaryColor,
+                      color: AppColors.primary,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -137,7 +108,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColors.textWhite,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -147,7 +118,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     _user!.email,
                     style: const TextStyle(
                       fontSize: 16,
-                      color: Colors.white70,
+                      color: AppColors.textWhite,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -162,7 +133,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 margin: const EdgeInsets.symmetric(horizontal: 16),
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.background,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Column(
@@ -189,7 +160,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
               margin: const EdgeInsets.symmetric(horizontal: 16),
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                  color: AppColors.cardBackground,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
@@ -211,13 +182,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                          color: AppColors.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
                           '${_userJobs.length}',
                           style: TextStyle(
-                            color: Theme.of(context).primaryColor,
+                            color: AppColors.primary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -229,7 +200,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     Center(
                       child: Text(
                         'No job posts yet',
-                        style: TextStyle(color: Colors.grey[600]),
+                        style: TextStyle(color: AppColors.textSecondary),
                       ),
                     ),
                   // show each post
@@ -250,13 +221,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: Colors.grey[600]),
+          Icon(icon, size: 18, color: AppColors.textSecondary),
           const SizedBox(width: 8),
           Text(
             text,
             style: TextStyle(
               fontSize: 14,
-              color: Colors.grey[700],
+              color: AppColors.textSecondary,
             ),
           ),
         ],
@@ -265,60 +236,66 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Widget _buildJobCard(JobPost job) {
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => JobDetailPage(jobPost: job),
-          ),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.grey[50],
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.inputBorder),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey[200]!),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              job.title,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => JobDetailPage(jobPost: job),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              job.company,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Row(
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.location_on, size: 14, color: Colors.grey[600]),
-                const SizedBox(width: 4),
                 Text(
-                  job.location,
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  job.title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                const SizedBox(width: 12),
-                Icon(Icons.people, size: 14, color: Colors.grey[600]),
-                const SizedBox(width: 4),
+                const SizedBox(height: 4),
                 Text(
-                  '${job.applicants.length} applicants',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  job.company,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(Icons.location_on, size: 14, color: AppColors.textPrimary),
+                    const SizedBox(width: 4),
+                    Text(
+                      job.location,
+                      style: TextStyle(fontSize: 12, color: AppColors.textPrimary),
+                    ),
+                    const SizedBox(width: 12),
+                    Icon(Icons.people, size: 14, color: AppColors.textPrimary),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${job.applicants.length} applicants',
+                      style: TextStyle(fontSize: 12, color: AppColors.textPrimary),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );

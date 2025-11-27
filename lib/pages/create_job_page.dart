@@ -3,6 +3,7 @@ import '../models/job_post.dart';
 import '../services/api_service.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
+import '../themes/app_theme.dart';
 
 class CreateJobPage extends StatefulWidget {
   const CreateJobPage({super.key});
@@ -76,17 +77,17 @@ class _CreateJobPageState extends State<CreateJobPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Job posted successfully!'),
-              backgroundColor: Colors.green,
+              backgroundColor: AppColors.success,
             ),
           );
           Navigator.pop(context);
         }
-      } catch (e) {
+      } catch (error) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(e.toString()),
-              backgroundColor: Colors.red,
+              content: Text(error.toString()),
+              backgroundColor: AppColors.error,
             ),
           );
         }
@@ -97,7 +98,7 @@ class _CreateJobPageState extends State<CreateJobPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Post a Job'),
       ),
@@ -113,14 +114,15 @@ class _CreateJobPageState extends State<CreateJobPage> {
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
-                'Fill in the details to post a new job opportunity',
+                'Fill in the details to post a new job',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.grey[600],
+                  color: AppColors.textSecondary,
                 ),
               ),
               const SizedBox(height: 32),
@@ -181,7 +183,7 @@ class _CreateJobPageState extends State<CreateJobPage> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
-                      color: Colors.grey[100],
+                      color: AppColors.inputFill,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: DropdownButtonHideUnderline(
@@ -240,7 +242,7 @@ class _CreateJobPageState extends State<CreateJobPage> {
                     decoration: InputDecoration(
                       hintText: 'Describe the job role, requirements, and responsibilities...',
                       filled: true,
-                      fillColor: Colors.grey[100],
+                      fillColor: AppColors.inputFill,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
@@ -248,7 +250,7 @@ class _CreateJobPageState extends State<CreateJobPage> {
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(
-                          color: Theme.of(context).primaryColor,
+                          color: AppColors.primary,
                           width: 2,
                         ),
                       ),

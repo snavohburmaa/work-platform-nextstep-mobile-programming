@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/user.dart';
 import '../services/api_service.dart';
+import '../themes/app_theme.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -34,22 +35,19 @@ class _ProfilePageState extends State<ProfilePage> {
         return;
       }
 
-      // Get user's posts
+      // get user's posts
       List posts = [];
       try {
         posts = await api.getJobPostsByUser(user.id);
-      } catch (e) {
-        print('Error loading posts: $e');
+      } catch (error) {
         posts = [];
       }
 
-      // Get applications (users from users table can't apply, so this will be empty)
+      // get applications
       List applications = [];
       try {
         applications = await api.getApplicationsByUser(user.id);
-      } catch (e) {
-        // If user is from users table, they won't have applications
-        print('Note: User is from users table, no applications: $e');
+      } catch (error) {
         applications = [];
       }
 
@@ -60,13 +58,12 @@ class _ProfilePageState extends State<ProfilePage> {
           _myApplicationsCount = applications.length;
         });
       }
-    } catch (e) {
-      print('Error loading profile data: $e');
+    } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error loading profile: ${e.toString().replaceAll('Exception: ', '')}'),
-            backgroundColor: Colors.red,
+            content: Text('Error loading profile: ${error.toString().replaceAll('Exception: ', '')}'),
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -83,7 +80,6 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: const Text('My Profile'),
         automaticallyImplyLeading: false,
@@ -91,49 +87,49 @@ class _ProfilePageState extends State<ProfilePage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Profile Header
+            // profile header
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(24.0),
               decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor,
+                color: AppColors.primary,
               ),
               child: Column(
                 children: [
-                  // Profile Picture
+                  // profile pic
                   Container(
                     width: 100,
                     height: 100,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppColors.textWhite,
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 4),
+                      border: Border.all(color: AppColors.textWhite, width: 4),
                     ),
                     child: Icon(
                       Icons.person,
                       size: 50,
-                      color: Theme.of(context).primaryColor,
+                      color: AppColors.primary,
                     ),
                   ),
                   const SizedBox(height: 16),
 
-                  // User Name
+                  // name
                   Text(
                     _currentUser!.fullName,
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColors.textWhite,
                     ),
                   ),
                   const SizedBox(height: 8),
 
-                  // User Email
+                  // email
                   Text(
                     _currentUser!.email,
                     style: const TextStyle(
                       fontSize: 16,
-                      color: Colors.white70,
+                      color: AppColors.textWhite,
                     ),
                   ),
                 ],
@@ -142,7 +138,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
             const SizedBox(height: 16),
 
-            // Profile Stats
+            // profile stats
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
@@ -168,13 +164,14 @@ class _ProfilePageState extends State<ProfilePage> {
 
             const SizedBox(height: 16),
 
-            // Personal Information
+            // personal info
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.cardBackground,
                 borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.inputBorder),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -195,17 +192,6 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
 
             const SizedBox(height: 16),
-
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-
-            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -216,14 +202,14 @@ class _ProfilePageState extends State<ProfilePage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         children: [
           Icon(
             icon,
-            color: Theme.of(context).primaryColor,
+            color: AppColors.primary,
             size: 32,
           ),
           const SizedBox(height: 12),
@@ -239,7 +225,7 @@ class _ProfilePageState extends State<ProfilePage> {
             label,
             style: TextStyle(
               fontSize: 14,
-              color: Colors.grey[600],
+              color: AppColors.textSecondary,
             ),
             textAlign: TextAlign.center,
           ),
@@ -256,12 +242,12 @@ class _ProfilePageState extends State<ProfilePage> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withOpacity(0.1),
+              color: AppColors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
               icon,
-              color: Theme.of(context).primaryColor,
+              color: AppColors.primary,
               size: 20,
             ),
           ),
@@ -274,7 +260,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   label,
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey[600],
+                    color: AppColors.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 4),

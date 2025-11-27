@@ -3,6 +3,7 @@ import '../models/application.dart';
 import '../models/job_post.dart';
 import '../services/api_service.dart';
 import 'job_detail_page.dart';
+import '../themes/app_theme.dart';
 
 class MyApplicationsPage extends StatefulWidget {
   const MyApplicationsPage({super.key});
@@ -32,7 +33,7 @@ class _MyApplicationsPageState extends State<MyApplicationsPage> {
 
     final apps = await storage.getApplicationsByUser(currentUser.id);
     
-    // Load job posts for each application
+    // load post each application
     final Map<String, JobPost?> posts = {};
     for (var app in apps) {
       posts[app.jobId] = await storage.getJobPostById(app.jobId);
@@ -48,7 +49,6 @@ class _MyApplicationsPageState extends State<MyApplicationsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: const Text('My Applications'),
         automaticallyImplyLeading: false,
@@ -63,13 +63,13 @@ class _MyApplicationsPageState extends State<MyApplicationsPage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.assignment_outlined,
-                              size: 64, color: Colors.grey[400]),
+                              size: 64, color: AppColors.textSecondary),
                           const SizedBox(height: 16),
                           Text(
                             'No applications yet',
                             style: TextStyle(
                               fontSize: 18,
-                              color: Colors.grey[600],
+                              color: AppColors.textSecondary,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -96,7 +96,7 @@ class _MyApplicationsPageState extends State<MyApplicationsPage> {
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.cardBackground,
           borderRadius: BorderRadius.circular(16),
         ),
         child: const Text('Job post no longer available'),
@@ -106,15 +106,9 @@ class _MyApplicationsPageState extends State<MyApplicationsPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 10,
-          ),
-        ],
+        border: Border.all(color: AppColors.inputBorder),
       ),
       child: Material(
         color: Colors.transparent,
@@ -133,7 +127,6 @@ class _MyApplicationsPageState extends State<MyApplicationsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Job Title and Company
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -149,7 +142,7 @@ class _MyApplicationsPageState extends State<MyApplicationsPage> {
                       job.company,
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[600],
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ],
@@ -157,34 +150,28 @@ class _MyApplicationsPageState extends State<MyApplicationsPage> {
 
                 const SizedBox(height: 12),
 
-                // Job Details
                 Row(
                   children: [
-                    Icon(Icons.location_on, size: 16, color: Colors.grey[600]),
+                    Icon(Icons.location_on, size: 16, color: Colors.blue),
                     const SizedBox(width: 4),
                     Text(
                       job.location,
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                     ),
                     const SizedBox(width: 16),
-                    Icon(Icons.work_outline, size: 16, color: Colors.grey[600]),
+                    Icon(Icons.work_outline, size: 16, color: Colors.green),
                     const SizedBox(width: 4),
                     Text(
                       job.jobType,
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                     ),
                   ],
                 ),
 
                 const SizedBox(height: 12),
 
-                // Application Message Preview
                 Container(
                   padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -200,7 +187,7 @@ class _MyApplicationsPageState extends State<MyApplicationsPage> {
                         app.message,
                         style: TextStyle(
                           fontSize: 13,
-                          color: Colors.grey[700],
+                          color: AppColors.textSecondary,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -211,16 +198,15 @@ class _MyApplicationsPageState extends State<MyApplicationsPage> {
 
                 const SizedBox(height: 12),
 
-                // Applied Date
                 Row(
                   children: [
-                    Icon(Icons.calendar_today, size: 14, color: Colors.grey[500]),
+                    Icon(Icons.calendar_today, size: 14, color: AppColors.textSecondary),
                     const SizedBox(width: 4),
                     Text(
                       'Applied ${_getTimeAgo(app.appliedAt)}',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey[500],
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ],

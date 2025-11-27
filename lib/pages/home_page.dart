@@ -3,6 +3,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../models/job_post.dart';
 import '../models/user.dart';
 import '../services/api_service.dart';
+import '../themes/app_theme.dart';
+import '../widgets/custom_text_field.dart';
 import 'create_job_page.dart';
 import 'job_detail_page.dart';
 import 'my_posts_page.dart';
@@ -53,7 +55,7 @@ class _HomePageState extends State<HomePage> {
               onPressed: () => Navigator.pop(context, true),
               child: const Text(
                 'Logout',
-                style: TextStyle(color: Colors.red),
+                style: TextStyle(color: AppColors.error),
               ),
             ),
           ],
@@ -83,8 +85,9 @@ class _HomePageState extends State<HomePage> {
         currentIndex: _selectedIndex,
         onTap: _handleNavigation,
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: Theme.of(context).primaryColor,
-        unselectedItemColor: Colors.grey,
+        backgroundColor: AppColors.background,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: AppColors.textSecondary,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
@@ -103,7 +106,7 @@ class _HomePageState extends State<HomePage> {
             label: 'Profile',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.logout, color: Colors.red),
+            icon: Icon(Icons.logout, color: AppColors.error),
             label: 'Logout',
           ),
         ],
@@ -153,9 +156,7 @@ class _JobFeedPageState extends State<JobFeedPage> {
   void _filterPosts() {
     setState(() {
       _filteredPosts = _jobPosts.where((post) {
-
         // Search 
-
         final searchQuery = _searchController.text.toLowerCase();
         final matchesSearch = searchQuery.isEmpty ||
             post.title.toLowerCase().contains(searchQuery) ||
@@ -172,10 +173,12 @@ class _JobFeedPageState extends State<JobFeedPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
+    return Scaffold(     
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Job Feed'),
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.textWhite,
       ),
       body: RefreshIndicator(
         onRefresh: _loadData,
@@ -183,20 +186,13 @@ class _JobFeedPageState extends State<JobFeedPage> {
           children: [
             Container(
               padding: const EdgeInsets.all(16.0),
-              color: Colors.white,
-              child: TextField(
+              color: AppColors.cardBackground,
+              child: CustomTextField(
+                label: '',
+                hint: 'Search jobs...',
                 controller: _searchController,
+                prefixIcon: Icons.search,
                 onChanged: (_) => _filterPosts(),
-                decoration: InputDecoration(
-                  hintText: 'Search jobs...',
-                  prefixIcon: const Icon(Icons.search),
-                  filled: true,
-                  fillColor: Colors.grey[100],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
               ),
             ),
 
@@ -217,11 +213,11 @@ class _JobFeedPageState extends State<JobFeedPage> {
                                 _filterPosts();
                               });
                             },
-                            selectedColor: Theme.of(context).primaryColor,
+                            selectedColor: AppColors.primary,
                             labelStyle: TextStyle(
                               color: _selectedFilter == filter
-                                  ? Colors.white
-                                  : Colors.black87,
+                                  ? AppColors.textWhite
+                                  : AppColors.textPrimary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -239,17 +235,17 @@ class _JobFeedPageState extends State<JobFeedPage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.work_off,
-                              size: 64, color: Colors.grey[400]),
+                              size: 64, color: AppColors.textSecondary),
                           const SizedBox(height: 16),
                           Text(
                             'No jobs found',
                             style: TextStyle(
                               fontSize: 18,
-                              color: Colors.grey[600],
+                              color: AppColors.textSecondary,
                             ),
                           ),
                           const SizedBox(height: 8),
-                          const Text('Be the first to post a job!'),
+                          Text('Be the first to post a job!', style: TextStyle(color: AppColors.textPrimary)),
                         ],
                       ),
                     )
@@ -275,16 +271,20 @@ class _JobFeedPageState extends State<JobFeedPage> {
         },
         icon: const Icon(Icons.add),
         label: const Text('Post Job'),
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.textWhite,
       ),
     );
   }
-
+  
+//jobs
   Widget _buildJobCard(JobPost job, bool isMyPost) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.inputBorder),
       ),
       child: Material(
         color: Colors.transparent,
@@ -309,12 +309,12 @@ class _JobFeedPageState extends State<JobFeedPage> {
                       width: 50,
                       height: 50,
                       decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor,
+                        color: AppColors.primary,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
                         Icons.business,
-                        color: Colors.white,
+                        color: AppColors.textWhite,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -335,7 +335,7 @@ class _JobFeedPageState extends State<JobFeedPage> {
                             job.company,
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.grey[600],
+                              color: AppColors.textSecondary,
                             ),
                           ),
                         ],
@@ -348,13 +348,13 @@ class _JobFeedPageState extends State<JobFeedPage> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor,
+                          color: AppColors.primary,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Text(
                           'My Post',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textWhite,
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                           ),
@@ -367,13 +367,13 @@ class _JobFeedPageState extends State<JobFeedPage> {
 
                 Row(
                   children: [
-                    const Icon(Icons.person, size: 16, color: Colors.grey),
+                    const Icon(Icons.person, size: 16, color: AppColors.textSecondary),
                     const SizedBox(width: 4),
                     Text(
                       'Posted by ${job.userName}',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey[600],
+                        color: AppColors.textSecondary,
                       ),
                     ),
                     const Spacer(),
@@ -381,7 +381,7 @@ class _JobFeedPageState extends State<JobFeedPage> {
                       _getTimeAgo(job.createdAt),
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey[600],
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ],
@@ -405,7 +405,7 @@ class _JobFeedPageState extends State<JobFeedPage> {
                   job.description,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey[700],
+                    color: AppColors.textSecondary,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -416,13 +416,13 @@ class _JobFeedPageState extends State<JobFeedPage> {
                 Row(
                   children: [
                     Icon(Icons.people,
-                        size: 18, color: Theme.of(context).primaryColor),
+                        size: 18, color: AppColors.primary),
                     const SizedBox(width: 4),
                     Text(
                       '${job.applicants.length} applicants',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Theme.of(context).primaryColor,
+                        color: AppColors.primary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -440,7 +440,7 @@ class _JobFeedPageState extends State<JobFeedPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(

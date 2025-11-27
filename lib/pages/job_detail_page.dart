@@ -4,6 +4,7 @@ import '../models/job_post.dart';
 import '../models/application.dart';
 import '../services/api_service.dart';
 import 'user_profile_page.dart';
+import '../themes/app_theme.dart';
 
 class JobDetailPage extends StatefulWidget {
   final JobPost jobPost;
@@ -31,10 +32,8 @@ class _JobDetailPageState extends State<JobDetailPage> {
     
     if (currentUser == null) return;
     
-    // Check user's own post
+    // Check 
     final isMyPost = widget.jobPost.userId == currentUser.id;
-    
-    // Check user apply
     final hasApplied = await storage.hasUserApplied(widget.jobPost.id, currentUser.id);
 
     if (mounted) {
@@ -86,7 +85,7 @@ class _JobDetailPageState extends State<JobDetailPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error apply to job'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -97,7 +96,7 @@ class _JobDetailPageState extends State<JobDetailPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Application submitted successfully!'),
-          backgroundColor: Colors.green,
+          backgroundColor: AppColors.success,
         ),
       );
       Navigator.pop(context);
@@ -134,7 +133,7 @@ class _JobDetailPageState extends State<JobDetailPage> {
               controller: _messageController,
               maxLines: 5,
               decoration: InputDecoration(
-                hintText: 'Tell the employer why you are a great fit...',
+                hintText: 'why you are a great fit for this job',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -162,7 +161,7 @@ class _JobDetailPageState extends State<JobDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Job Details'),
         actions: [],
@@ -174,7 +173,7 @@ class _JobDetailPageState extends State<JobDetailPage> {
             
             Container(
               padding: const EdgeInsets.all(24),
-              color: Colors.white,
+              color: AppColors.cardBackground,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -184,13 +183,13 @@ class _JobDetailPageState extends State<JobDetailPage> {
                         width: 70,
                         height: 70,
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                          color: AppColors.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Icon(
                           Icons.business,
                           size: 35,
-                          color: Theme.of(context).primaryColor,
+                          color: AppColors.primary,
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -210,7 +209,7 @@ class _JobDetailPageState extends State<JobDetailPage> {
                               widget.jobPost.company,
                               style: TextStyle(
                                 fontSize: 16,
-                                color: Colors.grey[600],
+                                color: AppColors.textSecondary,
                               ),
                             ),
                           ],
@@ -246,7 +245,7 @@ class _JobDetailPageState extends State<JobDetailPage> {
                     },
                     child: Row(
                       children: [
-                        const Icon(Icons.person, size: 18),
+                        const Icon(Icons.person, size: 18, color: AppColors.primary),
                         const SizedBox(width: 4),
                         Text(
                           'Posted by ${widget.jobPost.userName}',
@@ -266,12 +265,12 @@ class _JobDetailPageState extends State<JobDetailPage> {
                   // Applicants count
                   Row(
                     children: [
-                      Icon(Icons.people, color: Theme.of(context).primaryColor),
+                      Icon(Icons.people, color: AppColors.primary),
                       const SizedBox(width: 8),
                       Text(
                         '${widget.jobPost.applicants.length} people applied',
                         style: TextStyle(
-                          color: Theme.of(context).primaryColor,
+                          color: AppColors.primary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -286,7 +285,7 @@ class _JobDetailPageState extends State<JobDetailPage> {
             // Job Description
             Container(
               padding: const EdgeInsets.all(24),
-              color: Colors.white,
+              color: AppColors.cardBackground,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -302,7 +301,7 @@ class _JobDetailPageState extends State<JobDetailPage> {
                     widget.jobPost.description,
                     style: TextStyle(
                       fontSize: 15,
-                      color: Colors.grey[700],
+                      color: AppColors.textSecondary,
                       height: 1.5,
                     ),
                   ),
@@ -319,28 +318,21 @@ class _JobDetailPageState extends State<JobDetailPage> {
           : Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withValues(alpha: 0.2),
-                    spreadRadius: 1,
-                    blurRadius: 10,
-                  ),
-                ],
+                color: AppColors.cardBackground,
               ),
               child: SizedBox(
                 height: 50,
                 child: ElevatedButton(
                   onPressed: _hasApplied ? null : _showApplyDialog,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _hasApplied ? Colors.grey : Theme.of(context).primaryColor,
+                    backgroundColor: _hasApplied ? AppColors.textSecondary : AppColors.primary,
                   ),
                   child: Text(
                     _hasApplied ? 'Already Applied' : 'Apply Now',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColors.textWhite,
                     ),
                   ),
                 ),

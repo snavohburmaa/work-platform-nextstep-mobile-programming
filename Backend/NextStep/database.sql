@@ -1,11 +1,7 @@
--- NextStep Job Platform Database Schema
--- MySQL Database for Job Application Platform
-
--- Create database
 CREATE DATABASE IF NOT EXISTS nextstep_db;
 USE nextstep_db;
 
--- Users Table (for recruiters/posters)
+-- user
 CREATE TABLE IF NOT EXISTS users (
     UserID INT PRIMARY KEY AUTO_INCREMENT,
     FullName VARCHAR(50) NOT NULL,
@@ -15,7 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
     CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Posts Table (Job Postings)
+-- post
 CREATE TABLE IF NOT EXISTS posts (
     PostID INT PRIMARY KEY AUTO_INCREMENT,
     UserID INT NOT NULL,
@@ -32,7 +28,7 @@ CREATE TABLE IF NOT EXISTS posts (
     FOREIGN KEY (UserID) REFERENCES users(UserID) ON DELETE CASCADE
 );
 
--- Applications Table (Job Applications)
+-- application
 CREATE TABLE IF NOT EXISTS applications (
     ApplicationID INT PRIMARY KEY AUTO_INCREMENT,
     UserID INT NOT NULL,
@@ -42,12 +38,10 @@ CREATE TABLE IF NOT EXISTS applications (
     
     FOREIGN KEY (UserID) REFERENCES users(UserID) ON DELETE CASCADE,
     FOREIGN KEY (PostID) REFERENCES posts(PostID) ON DELETE CASCADE,
-    
-    -- Prevent duplicate applications
+
     UNIQUE KEY unique_application (UserID, PostID)
 );
 
--- Indexes for better performance
 CREATE INDEX idx_user_email ON users(Email);
 CREATE INDEX idx_application_user ON applications(UserID);
 CREATE INDEX idx_application_post ON applications(PostID);
