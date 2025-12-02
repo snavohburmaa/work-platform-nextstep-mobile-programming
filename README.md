@@ -146,7 +146,7 @@ static const String baseUrl = 'http://192.168.1.XXX:3000';
 ### 6. Run the Application
 
 ```bash
-flutter run
+npm start
 ```
 
 ## Database Schema
@@ -245,22 +245,6 @@ flutter build ios
 - Ensure user has proper permissions
 - Check for firewall blocking port 3306
 
-## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
 
-## License
-
-This project is open source and available for educational purposes.
-
-## Author
-
-Developed as part of a mobile programming course project.
-
-## Support
-
-For issues and questions, please open an issue on the GitHub repository.
 
